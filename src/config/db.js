@@ -1,14 +1,16 @@
-const mysql = require('mysql2/promise');
+const { Pool } = require('pg');
 
-const pool = mysql.createPool({
-  host: 'localhost',
-  port: 3306,              // ✅ MySQL port (NOT 4000)
-  user: 'root',
-  password: 'root',
-  database: 'student_survey',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+const pool = new Pool({
+  
+   connectionString: process.env.DATABASE_URL || 
+    'postgresql://postgres:root@localhost:5432/student_survey',
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false
+});
+
+pool.on('connect', () => {
+  console.log('PostgreSQL connected successfully');
 });
 
 module.exports = pool;

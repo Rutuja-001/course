@@ -1,23 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const recommendationController = require('../controllers/recommendationController');
 
-const {
-  createCourse,
-  getCourses,
-  exportCourses,
-  test
-} = require('../controllers/recommendation');
+// ==========================
+// POST quiz answers and get recommended courses
+// ==========================
+router.post('/', recommendationController.getRecommendations);
 
-// TEST ENDPOINT
-router.get('/question', test);
 
-// CREATE RECOMMENDATION COURSE
-router.post('/', createCourse);
 
-// GET ALL COURSES
-router.get('/', getCourses);
-
-// EXPORT COURSES
-router.get('/export', exportCourses);
+// ==========================
+// GET export courses to Excel
+// ==========================
+router.get('/export', recommendationController.exportCourses);
 
 module.exports = router;
