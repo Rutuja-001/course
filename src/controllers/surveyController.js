@@ -71,7 +71,9 @@ exports.createResponse = async (req, res) => {
     const result = await pool.query(insertQuery, params);
 
     res.status(201).json({
-      id: result.rows[0].id
+      success: true,
+      message: 'Response saved successfully',
+      //id: result.rows[0].id
     });
 
   } catch (err) {
