@@ -12,6 +12,6 @@ router.post('/', recommendationController.getRecommendations);
 // ==========================
 // GET export courses to Excel
 // ==========================
-router.get('/export', recommendationController.exportCourses);
+//router.get('/export', recommendationController.exportCourses);
 
 module.exports = router;

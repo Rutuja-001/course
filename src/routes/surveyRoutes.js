@@ -4,7 +4,7 @@ const controller = require('../controllers/surveyController');
 
 router.post('/surveys', controller.createResponse);
 router.get('/surveys', controller.getResponses);
-router.get('/surveys/export', controller.exportResponses);
+//router.get('/surveys/export', controller.exportResponses);
 //router.get('/surveys/init', controller.initTable);
 
 module.exports = router;

@@ -73,7 +73,7 @@ exports.createResponse = async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Response saved successfully',
-      //id: result.rows[0].id
+      id: result.rows[0].id
     });
 
   } catch (err) {
