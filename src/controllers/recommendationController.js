@@ -1,40 +1,89 @@
-const pool = require('../config/db'); // PostgreSQL pool
-const { exportToExcelBuffer } = require('../utils/exportExcel');
+const pool = require('../config/db');
 
-// Default courses (can also be stored in DB)
-const defaultCourses = [
-  { id: 1, title: "Complete Full Stack Web Development with MERN", description: "Master React, Node.js, Express, MongoDB", instructor: "Priya Sharma", duration: "120 hours", level: "Beginner to Advanced", rating: 4.8, students: 45000, price: "₹4,999", tags: ["Web Development", "React", "Node.js"] },
-  { id: 2, title: "Data Science & Machine Learning with Python", description: "Learn Python, Pandas, NumPy, ML", instructor: "Rajesh Kumar", duration: "80 hours", level: "Intermediate", rating: 4.7, students: 32000, price: "₹6,999", tags: ["Python", "Data Science", "ML"] },
-  // Add more courses as needed
-];
+// ============================
+// CREATE Recommendation
+// ============================
+exports.createRecommendation = async (req, res) => {
+  const {
+    survey_response_id,
+    title,
+    description,
+    instructor,
+    duration,
+    level,
+    rating,
+    students,
+    price,
+    image
+  } = req.body;
 
-// ==========================
-// POST /recommendations
-// Receive quiz answers and return recommended courses
-// ==========================
-exports.getRecommendations = async (req, res) => {
+  // Basic validation
+  if (!survey_response_id || !title) {
+    return res.status(400).json({
+      error: 'survey_response_id and title are required'
+    });
+  }
+
   try {
-    const userAnswers = req.body; // Array of user's answers
+    const result = await pool.query(
+      `
+      INSERT INTO recommendation_courses
+      (
+        survey_response_id,
+        title,
+        description,
+        instructor,
+        duration,
+        level,
+        rating,
+        students,
+        price,
+        image
+      )
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      RETURNING *
+      `,
+      [
+        survey_response_id,
+        title,
+        description,
+        instructor,
+        duration,
+        level,
+        rating,
+        students,
+        price,
+        image
+      ]
+    );
 
-    if (!userAnswers || !Array.isArray(userAnswers) || userAnswers.length === 0) {
-      // If no answers, return default courses
-      return res.status(200).json({ recommendations: defaultCourses });
-    }
+    res.status(201).json({
+      message: 'Recommendation course created successfully',
+      data: result.rows[0]
+    });
 
-    // TODO: Implement logic to filter/recommend courses based on quiz answers
-    // For now, randomly select some courses as a simple recommendation
-    const shuffled = [...defaultCourses].sort(() => 0.5 - Math.random());
-    const recommended = shuffled.slice(0, Math.min(5, shuffled.length)); // pick up to 5
-
-    res.status(200).json({ recommendations: recommended });
-  } catch (err) {
-    console.error("GET RECOMMENDATIONS ERROR:", err);
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('CREATE RECOMMENDATION ERROR:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-// ==========================
-// GET /recommendations/export
-// Export courses to Excel
-// ==========================
-exports.exportCourses = exportToExcelBuffer;
+// ============================
+// GET Recommendations
+// ============================
+exports.getRecommendations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM recommendation_courses ORDER BY created_at DESC'
+    );
+
+    res.status(200).json({
+      message: 'Recommendations fetched successfully',
+      data: result.rows
+    });
+
+  } catch (error) {
+    console.error('GET RECOMMENDATIONS ERROR:', error);
+    res.status(500).json({ error: error.message });
+  }
+};

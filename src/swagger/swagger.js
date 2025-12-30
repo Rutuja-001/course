@@ -7,24 +7,27 @@ const options = {
     info: {
       title: 'Student Survey & Recommendation Courses API',
       version: '1.0.0',
-      description: 'API for storing, linking, and exporting student survey responses and recommendation courses'
+      description:
+        'API for storing, linking, and exporting student survey responses and recommendation courses',
     },
+
     servers: [
-      { url: 'http://localhost:' + (process.env.PORT || 4000) }
+      {
+        url: `http://localhost:${process.env.PORT || 4000}`,
+      },
     ],
 
     components: {
       schemas: {
-
         /* =========================
-           SURVEY RESPONSE SCHEMAS
+           SURVEY RESPONSE SCHEMA
         ========================= */
         SurveyResponse: {
           type: 'object',
           properties: {
             id: { type: 'integer' },
             name: { type: 'string' },
-            age: { type: 'integer' },
+            age: { type: 'string' },
             gender: { type: 'string' },
             institution: { type: 'string' },
             degree: { type: 'string' },
@@ -48,8 +51,8 @@ const options = {
             courses_completed: { type: 'string' },
             learning_mode: { type: 'string' },
             certifications: { type: 'string' },
-            created_at: { type: 'string', format: 'date-time' }
-          }
+            created_at: { type: 'string', format: 'date-time' },
+          },
         },
 
         CreateSurveyRequest: {
@@ -57,7 +60,7 @@ const options = {
           required: ['name'],
           properties: {
             name: { type: 'string' },
-            age: { type: 'integer' },
+            age: { type: 'string' },
             gender: { type: 'string' },
             institution: { type: 'string' },
             degree: { type: 'string' },
@@ -80,12 +83,12 @@ const options = {
             tools_used: { type: 'string' },
             courses_completed: { type: 'string' },
             learning_mode: { type: 'string' },
-            certifications: { type: 'string' }
-          }
+            certifications: { type: 'string' },
+          },
         },
 
         /* =========================
-           RECOMMENDATION COURSE SCHEMAS
+           RECOMMENDATION COURSE SCHEMA
         ========================= */
         RecommendationCourse: {
           type: 'object',
@@ -97,16 +100,12 @@ const options = {
             instructor: { type: 'string' },
             duration: { type: 'string' },
             level: { type: 'string' },
-            rating: { type: 'number', format: 'float' },
+            rating: { type: 'number' },
             students: { type: 'integer' },
             price: { type: 'string' },
-            tags: {
-              type: 'array',
-              items: { type: 'string' }
-            },
             image: { type: 'string' },
-            created_at: { type: 'string', format: 'date-time' }
-          }
+            created_at: { type: 'string', format: 'date-time' },
+          },
         },
 
         CreateRecommendationRequest: {
@@ -122,22 +121,16 @@ const options = {
             rating: { type: 'number' },
             students: { type: 'integer' },
             price: { type: 'string' },
-            tags: {
-              type: 'array',
-              items: { type: 'string' }
-            },
-            image: { type: 'string' }
-          }
-        }
-      }
+            image: { type: 'string' },
+          },
+        },
+      },
     },
 
     /* =========================
        API PATHS
     ========================= */
     paths: {
-
-      /* ---- SURVEYS ---- */
       '/api/surveys': {
         post: {
           summary: 'Create survey response',
@@ -146,44 +139,36 @@ const options = {
             required: true,
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/CreateSurveyRequest' }
-              }
-            }
+                schema: {
+                  $ref: '#/components/schemas/CreateSurveyRequest',
+                },
+              },
+            },
           },
           responses: {
-            '201': { description: 'Survey created' }
-          }
+            201: { description: 'Survey created successfully' },
+          },
         },
+
         get: {
-          summary: 'List survey responses',
+          summary: 'Get all survey responses',
           tags: ['Surveys'],
           responses: {
-            '200': {
-              description: 'OK',
+            200: {
+              description: 'List of surveys',
               content: {
                 'application/json': {
                   schema: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/SurveyResponse' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    items: { $ref: '#/components/schemas/SurveyResponse' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
 
-      '/api/surveys/export': {
-        get: {
-          summary: 'Export survey responses to Excel',
-          tags: ['Surveys'],
-          responses: {
-            '200': { description: 'Excel file' }
-          }
-        }
-      },
-
-      /* ---- RECOMMENDATION COURSES ---- */
       '/api/recommendations': {
         post: {
           summary: 'Create recommendation course',
@@ -192,70 +177,52 @@ const options = {
             required: true,
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/CreateRecommendationRequest' }
-              }
-            }
+                schema: {
+                  $ref: '#/components/schemas/CreateRecommendationRequest',
+                },
+              },
+            },
           },
           responses: {
-            '201': { description: 'Recommendation course created' }
-          }
+            201: { description: 'Recommendation created' },
+          },
         },
+
         get: {
-          summary: 'List recommendation courses',
+          summary: 'Get all recommendation courses',
           tags: ['Recommendation Courses'],
           responses: {
-            '200': {
-              description: 'OK',
+            200: {
+              description: 'List of recommendations',
               content: {
                 'application/json': {
                   schema: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/RecommendationCourse' }
-                  }
-                }
-              }
-            }
-          }
-        }
+                    items: { $ref: '#/components/schemas/RecommendationCourse' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
 
-      '/api/recommendations/export': {
+      /* =========================
+         NEW EXPORT ENDPOINT
+      ========================= */
+      '/api/surveys/export-with-courses': {
         get: {
-          summary: 'Export recommendation courses to Excel',
-          tags: ['Recommendation Courses'],
+          summary: 'Export survey responses with recommended courses to Excel',
+          tags: ['Surveys'],
           responses: {
-            '200': { description: 'Excel file' }
-          }
-        }
+            200: { description: 'Excel file downloaded' },
+          },
+        },
       },
-
-      /* ✅ NEW TEST ENDPOINT */
-      '/api/recommendations/question': {
-        get: {
-          summary: 'Test recommendation API',
-          tags: ['Recommendation Courses'],
-          responses: {
-            '200': {
-              description: 'Test successful',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'object',
-                    properties: {
-                      message: { type: 'string' }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-
-    }
+    },
   },
 
-  apis: []
+  apis: [],
 };
 
 const swaggerSpec = swaggerJSDoc(options);

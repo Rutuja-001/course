@@ -1,7 +1,8 @@
 const pool = require('../config/db');
-const { exportToExcelBuffer } = require('../utils/exportExcel');
+//const { exportToExcelBuffer } = require('../utils/exportExcel');
+//const { exportToExcelBuffer } = require('../controllers/surveyController');
 
-console.log('surveyController exportToExcelBuffer:', exportToExcelBuffer);
+//console.log('surveyController exportToExcelBuffer:', exportToExcelBuffer);
 
 /* =========================
    POSTGRES INSERT QUERY
@@ -106,7 +107,7 @@ exports.exportResponses = async (req, res) => {
       'SELECT * FROM survey_responses ORDER BY created_at DESC'
     );
 
-    const buffer = await exportToExcelBuffer(rows);
+    //const buffer = await exportToExcelBuffer(rows);
 
     res.setHeader(
       'Content-Disposition',

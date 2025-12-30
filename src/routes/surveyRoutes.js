@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/surveyController');
+//router.get('/export/full', surveyController.exportSurveyWithCourses);
+
 
 router.post('/surveys', controller.createResponse);
 router.get('/surveys', controller.getResponses);
