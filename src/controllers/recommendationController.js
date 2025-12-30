@@ -69,7 +69,7 @@ exports.createRecommendation = async (req, res) => {
 };
 
 // ============================
-// GET Recommendations
+// GET ALL Recommendations
 // ============================
 exports.getRecommendations = async (req, res) => {
   try {
@@ -84,6 +84,35 @@ exports.getRecommendations = async (req, res) => {
 
   } catch (error) {
     console.error('GET RECOMMENDATIONS ERROR:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// ============================
+// GET Recommendation BY ID
+// ============================
+exports.getRecommendationById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM recommendation_courses WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: 'Recommendation not found'
+      });
+    }
+
+    res.status(200).json({
+      message: 'Recommendation fetched successfully',
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error('GET RECOMMENDATION BY ID ERROR:', error);
     res.status(500).json({ error: error.message });
   }
 };
