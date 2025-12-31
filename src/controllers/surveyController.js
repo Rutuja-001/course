@@ -1,12 +1,5 @@
 const pool = require('../config/db');
-//const { exportToExcelBuffer } = require('../utils/exportExcel');
-//const { exportToExcelBuffer } = require('../controllers/surveyController');
 
-//console.log('surveyController exportToExcelBuffer:', exportToExcelBuffer);
-
-/* =========================
-   POSTGRES INSERT QUERY
-========================= */
 const insertQuery = `
 INSERT INTO survey_responses (
   name, age, gender, institution, degree, year_of_study, semester, percentage,
@@ -31,7 +24,6 @@ exports.createResponse = async (req, res) => {
   try {
     const body = req.body || {};
 
-    // Take everything as string
     const params = [
       body.name ?? '',
       body.age ?? '',
@@ -67,8 +59,6 @@ exports.createResponse = async (req, res) => {
       body.certifications ? JSON.stringify(body.certifications) : ''
     ];
 
-    console.log('Params length:', params.length); // must be 25
-
     const result = await pool.query(insertQuery, params);
 
     res.status(201).json({
@@ -84,7 +74,7 @@ exports.createResponse = async (req, res) => {
 };
 
 /* =========================
-   GET RESPONSES
+   GET ALL RESPONSES
 ========================= */
 exports.getResponses = async (req, res) => {
   try {
@@ -99,29 +89,23 @@ exports.getResponses = async (req, res) => {
 };
 
 /* =========================
-   EXPORT RESPONSES TO EXCEL
+   GET SINGLE RESPONSE BY ID
 ========================= */
-exports.exportResponses = async (req, res) => {
+exports.getSurveyById = async (req, res) => {
   try {
+    const { id } = req.params;
     const { rows } = await pool.query(
-      'SELECT * FROM survey_responses ORDER BY created_at DESC'
+      'SELECT * FROM survey_responses WHERE id = $1',
+      [id]
     );
 
-    //const buffer = await exportToExcelBuffer(rows);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
 
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="survey_responses.xlsx"'
-    );
-    res.setHeader(
-      'Content-Type',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    );
-
-    res.send(buffer);
-
+    res.json(rows[0]);
   } catch (err) {
-    console.error('EXPORT ERROR:', err);
-    res.status(500).json({ error: 'Failed to export responses' });
+    console.error('GET SURVEY BY ID ERROR:', err);
+    res.status(500).json({ error: 'Failed to fetch survey' });
   }
 };
