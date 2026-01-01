@@ -45,6 +45,7 @@ const exportSurveyWithCoursesExcel = async (rows) => {
     { header: 'Courses Completed', key: 'courses_completed', width: 30 },
     { header: 'Learning Mode', key: 'learning_mode', width: 20 },
     { header: 'Certifications', key: 'certifications', width: 30 },
+    //{ header: 'Submitted At', key: 'created_at', width: 22 },
     { header: 'Course Title', key: 'course_title', width: 30 },
     { header: 'Course Description', key: 'course_description', width: 40 },
     { header: 'Instructor', key: 'instructor', width: 25 },
@@ -52,7 +53,8 @@ const exportSurveyWithCoursesExcel = async (rows) => {
     { header: 'Level', key: 'level', width: 15 },
     { header: 'Rating', key: 'rating', width: 10 },
     { header: 'Students', key: 'students', width: 15 },
-    { header: 'Price', key: 'price', width: 15 }
+    { header: 'Price', key: 'price', width: 15 },
+    { header: 'Submitted At', key: 'created_at', width: 22 },
   ];
 
   rows.forEach(row => {

@@ -35,13 +35,14 @@ exports.downloadSurveyWithCourses = async (req, res) => {
         rc.description AS course_description,
         rc.instructor,
         rc.duration,
-        rc.level,
+        rc."level" AS course_level,
         rc.rating,
         rc.students,
-        rc.price
+        rc.price,
+        rc.created_at
       FROM survey_responses sr
       LEFT JOIN recommendation_courses rc
-      ON sr.id = rc.survey_response_id
+        ON sr.id = rc.survey_response_id
     `;
 
     const { rows } = await pool.query(surveyQuery);
