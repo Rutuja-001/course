@@ -45,7 +45,7 @@ const exportSurveyWithCoursesExcel = async (rows) => {
     { header: 'Courses Completed', key: 'courses_completed', width: 30 },
     { header: 'Learning Mode', key: 'learning_mode', width: 20 },
     { header: 'Certifications', key: 'certifications', width: 30 },
-    //{ header: 'Submitted At', key: 'created_at', width: 22 },
+
     { header: 'Course Title', key: 'course_title', width: 30 },
     { header: 'Course Description', key: 'course_description', width: 40 },
     { header: 'Instructor', key: 'instructor', width: 25 },
@@ -54,10 +54,11 @@ const exportSurveyWithCoursesExcel = async (rows) => {
     { header: 'Rating', key: 'rating', width: 10 },
     { header: 'Students', key: 'students', width: 15 },
     { header: 'Price', key: 'price', width: 15 },
-    { header: 'Submitted At', key: 'created_at', width: 22 },
+
+    { header: 'Submitted At', key: 'created_at', width: 22 }
   ];
 
-  rows.forEach(row => {
+  rows.forEach((row) => {
     worksheet.addRow({
       ...row,
       core_subjects: stringify(row.core_subjects),
@@ -67,9 +68,13 @@ const exportSurveyWithCoursesExcel = async (rows) => {
       learning_style: stringify(row.learning_style),
       tools_used: stringify(row.tools_used),
       courses_completed: stringify(row.courses_completed),
-      certifications: stringify(row.certifications)
+      certifications: stringify(row.certifications),
+      created_at: row.created_at ? new Date(row.created_at) : null
     });
   });
+
+  // Date + Time format
+  worksheet.getColumn('created_at').numFmt = 'yyyy-mm-dd hh:mm:ss';
 
   return await workbook.xlsx.writeBuffer();
 };
