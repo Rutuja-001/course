@@ -1,12 +1,11 @@
 const pool = require('../config/db');
 
 // ============================
-// CREATE Recommendation (FROM DATABASE)
+// CREATE Recommendation
 // ============================
 exports.createRecommendation = async (req, res) => {
-  const { survey_response_id, course_ids } = req.body;
+  const { survey_response_id, course_ids, created_at } = req.body;
 
-  // ✅ Validation
   if (!survey_response_id || !Array.isArray(course_ids) || course_ids.length === 0) {
     return res.status(400).json({
       error: "survey_response_id and course_ids are required"
@@ -14,19 +13,18 @@ exports.createRecommendation = async (req, res) => {
   }
 
   try {
-    // 1️⃣ Fetch selected courses from DB
+    // Update survey timestamp
+    if (created_at) {
+      await pool.query(
+        'UPDATE survey_responses SET created_at = $1 WHERE id = $2',
+        [created_at, survey_response_id]
+      );
+    }
+
+    // Fetch courses
     const courseQuery = `
-      SELECT
-        id,
-        title,
-        description,
-        instructor,
-        duration,
-        level,
-        rating,
-        students,
-        price,
-        image
+      SELECT id, title, description, instructor, duration, level,
+             rating, students, price, image
       FROM courses
       WHERE id = ANY($1)
     `;
@@ -34,15 +32,11 @@ exports.createRecommendation = async (req, res) => {
     const courseResult = await pool.query(courseQuery, [course_ids]);
 
     if (courseResult.rows.length === 0) {
-      return res.status(404).json({
-        error: "No courses found for provided IDs"
-      });
+      return res.status(404).json({ error: "No courses found" });
     }
 
-    // 2️⃣ Insert into recommendation_courses
     const insertQuery = `
-      INSERT INTO recommendation_courses
-      (
+      INSERT INTO recommendation_courses (
         survey_response_id,
         title,
         description,
@@ -58,7 +52,7 @@ exports.createRecommendation = async (req, res) => {
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
     `;
 
-    const createdAt = new Date();
+    const timestamp = created_at ? new Date(created_at) : new Date();
 
     for (const course of courseResult.rows) {
       await pool.query(insertQuery, [
@@ -72,7 +66,7 @@ exports.createRecommendation = async (req, res) => {
         course.students,
         course.price,
         course.image,
-        createdAt,
+        timestamp
       ]);
     }
 

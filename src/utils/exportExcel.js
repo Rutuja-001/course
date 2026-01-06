@@ -1,5 +1,6 @@
 const ExcelJS = require('exceljs');
-
+//import moment from 'moment';
+const moment = require('moment');
 /**
  * Safely stringify arrays / objects for Excel
  */
@@ -13,25 +14,25 @@ const stringify = (value) => {
     return String(value);
   }
 };
-/**
- * Get current server timestamp as Excel-safe Date
- */
-// const currentServerDate = () => {
-//   const now = new Date();
-//   return new Date(
-//     now.getFullYear(),
-//     now.getMonth(),
-//     now.getDate(),
-//     now.getHours(),
-//     now.getMinutes(),
-//     now.getSeconds()
-//   );
-// };
 
+/**
+ * Convert UTC Date → IST Date (Excel-safe)
+ */
+const toIST = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  return new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+};
+
+/**
+ * Export Survey + Recommended Courses to Excel
+ */
 const exportSurveyWithCoursesExcel = async (rows) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Survey With Courses');
+  console.log(moment(new Date()).format('YYYY-MM-DD HH:mm:ss'))
 
+  //console.log(moment().format('YYYY-MM-DD HH:mm:ss'))
   if (!rows || rows.length === 0) {
     return await workbook.xlsx.writeBuffer();
   }
@@ -117,7 +118,11 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         courses_completed: stringify(row.courses_completed),
         learning_mode: row.learning_mode,
         certifications: stringify(row.certifications),
-       // created_at: currentServerDate() // <-- real server time
+
+        // ✅ IST time
+        //created_at: moment().toDate().format('YYYY-MM-DD HH:mm:ss')
+        created_at: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+        //console.log(moment(new Date()).format('YYYY-MM-DD HH:mm:ss'))
       });
       return;
     }
@@ -161,13 +166,16 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         students: course.students,
         price: course.price,
 
-        //created_at: currentServerDate() // <-- real server time
+        // ✅ CORRECT: course-level IST time
+        created_at: course.created_at
+          ? toIST(course.created_at)
+          : toIST(row.created_at)
       });
     });
   });
 
   // ===============================
-  // Date Format (AM / PM)
+  // Excel Date Format
   // ===============================
   worksheet.getColumn('created_at').numFmt =
     'yyyy-mm-dd hh:mm:ss AM/PM';
