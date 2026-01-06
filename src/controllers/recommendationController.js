@@ -52,7 +52,8 @@ exports.createRecommendation = async (req, res) => {
         rating,
         students,
         price,
-        image
+        image,
+        created_at
       )
       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
     `;
@@ -68,7 +69,8 @@ exports.createRecommendation = async (req, res) => {
         course.rating,
         course.students,
         course.price,
-        course.image
+        course.image,
+        createdAt,
       ]);
     }
 

@@ -13,6 +13,20 @@ const stringify = (value) => {
     return String(value);
   }
 };
+/**
+ * Get current server timestamp as Excel-safe Date
+ */
+// const currentServerDate = () => {
+//   const now = new Date();
+//   return new Date(
+//     now.getFullYear(),
+//     now.getMonth(),
+//     now.getDate(),
+//     now.getHours(),
+//     now.getMinutes(),
+//     now.getSeconds()
+//   );
+// };
 
 const exportSurveyWithCoursesExcel = async (rows) => {
   const workbook = new ExcelJS.Workbook();
@@ -103,7 +117,7 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         courses_completed: stringify(row.courses_completed),
         learning_mode: row.learning_mode,
         certifications: stringify(row.certifications),
-        created_at: row.created_at ? new Date(row.created_at) : null
+       // created_at: currentServerDate() // <-- real server time
       });
       return;
     }
@@ -147,18 +161,16 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         students: course.students,
         price: course.price,
 
-        created_at:
-          index === 0 && row.created_at
-            ? new Date(row.created_at)
-            : null
+        //created_at: currentServerDate() // <-- real server time
       });
     });
   });
 
   // ===============================
-  // Date Format
+  // Date Format (AM / PM)
   // ===============================
-  worksheet.getColumn('created_at').numFmt = 'yyyy-mm-dd hh:mm:ss';
+  worksheet.getColumn('created_at').numFmt =
+    'yyyy-mm-dd hh:mm:ss AM/PM';
 
   return await workbook.xlsx.writeBuffer();
 };

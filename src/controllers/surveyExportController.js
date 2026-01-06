@@ -34,7 +34,7 @@ exports.downloadSurveyWithCourses = async (req, res) => {
             certifications,
             created_at
         FROM survey_responses
-        ORDER BY name, created_at DESC
+        ORDER BY name, created_at DESC   -- ✅ latest survey per name
       )
       SELECT
         ls.id AS survey_id,
@@ -113,7 +113,7 @@ exports.downloadSurveyWithCourses = async (req, res) => {
         ls.learning_mode,
         ls.certifications,
         ls.created_at
-      ORDER BY ls.created_at DESC;
+      ORDER BY ls.created_at ASC;  -- ✅ ascending output
     `;
 
     const { rows } = await pool.query(surveyQuery);
