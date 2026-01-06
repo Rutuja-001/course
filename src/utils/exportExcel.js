@@ -1,7 +1,8 @@
 const ExcelJS = require('exceljs');
+const moment = require('moment');
 
 /**
- * Safely stringify arrays / objects for Excel
+ * Safely stringify arrays/objects for Excel
  */
 const stringify = (value) => {
   if (value === null || value === undefined) return '';
@@ -13,21 +14,19 @@ const stringify = (value) => {
     return String(value);
   }
 };
-/**
- * Get current server timestamp as Excel-safe Date
- */
-// const currentServerDate = () => {
-//   const now = new Date();
-//   return new Date(
-//     now.getFullYear(),
-//     now.getMonth(),
-//     now.getDate(),
-//     now.getHours(),
-//     now.getMinutes(),
-//     now.getSeconds()
-//   );
-// };
 
+/**
+ * Convert UTC Date → IST Date (Excel-safe)
+ */
+const toIST = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  return new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
+};
+
+/**
+ * Export Survey + Recommended Courses to Excel
+ */
 const exportSurveyWithCoursesExcel = async (rows) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Survey With Courses');
@@ -84,9 +83,7 @@ const exportSurveyWithCoursesExcel = async (rows) => {
   // Data Population
   // ===============================
   rows.forEach((row) => {
-    const courses = Array.isArray(row.recommended_courses)
-      ? row.recommended_courses
-      : [];
+    const courses = Array.isArray(row.recommended_courses) ? row.recommended_courses : [];
 
     // Case 1: No recommended courses
     if (courses.length === 0) {
@@ -117,7 +114,9 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         courses_completed: stringify(row.courses_completed),
         learning_mode: row.learning_mode,
         certifications: stringify(row.certifications),
-       // created_at: currentServerDate() // <-- real server time
+
+        // ✅ IST time (no need for toDate)
+        created_at: moment().format('YYYY-MM-DD HH:mm:ss')
       });
       return;
     }
@@ -161,13 +160,16 @@ const exportSurveyWithCoursesExcel = async (rows) => {
         students: course.students,
         price: course.price,
 
-        //created_at: currentServerDate() // <-- real server time
+        // ✅ Correct: course-level IST time
+        created_at: course.created_at
+          ? moment(course.created_at).format('YYYY-MM-DD HH:mm:ss')
+          : moment(row.created_at).format('YYYY-MM-DD HH:mm:ss')
       });
     });
   });
 
   // ===============================
-  // Date Format (AM / PM)
+  // Excel Date Format
   // ===============================
   worksheet.getColumn('created_at').numFmt =
     'yyyy-mm-dd hh:mm:ss AM/PM';
