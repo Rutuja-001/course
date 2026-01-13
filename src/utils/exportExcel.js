@@ -16,30 +16,23 @@ const stringify = (value) => {
 };
 
 /**
- * Convert UTC Date → IST Date (Excel-safe)
- */
-const toIST = (date) => {
-  if (!date) return null;
-  const d = new Date(date);
-  return new Date(d.getTime() + 5.5 * 60 * 60 * 1000);
-};
-
-/**
  * Export Survey + Recommended Courses to Excel
+ * (ONE ROW = ONE SURVEY)
  */
 const exportSurveyWithCoursesExcel = async (rows) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Survey With Courses');
 
   if (!rows || rows.length === 0) {
-    return await workbook.xlsx.writeBuffer();
+    return workbook.xlsx.writeBuffer();
   }
 
   // ===============================
   // Excel Columns
   // ===============================
   worksheet.columns = [
-    { header: 'Survey ID', key: 'survey_id', width: 12 },
+    { header: 'Survey No', key: 'survey_no', width: 10 },
+    //{ header: 'Survey ID', key: 'survey_id', width: 12 },
     { header: 'Name', key: 'name', width: 20 },
     { header: 'Age', key: 'age', width: 8 },
     { header: 'Gender', key: 'gender', width: 12 },
@@ -66,115 +59,67 @@ const exportSurveyWithCoursesExcel = async (rows) => {
     { header: 'Learning Mode', key: 'learning_mode', width: 18 },
     { header: 'Certifications', key: 'certifications', width: 30 },
 
-    // ---- Course columns ----
-    { header: 'Course Title', key: 'course_title', width: 30 },
-    { header: 'Course Description', key: 'course_description', width: 40 },
-    { header: 'Instructor', key: 'instructor', width: 25 },
-    { header: 'Duration', key: 'duration', width: 15 },
-    { header: 'Level', key: 'level', width: 15 },
-    { header: 'Rating', key: 'rating', width: 10 },
-    { header: 'Students', key: 'students', width: 15 },
-    { header: 'Price', key: 'price', width: 15 },
+    // ✅ SINGLE COLUMN FOR COURSES
+    { header: 'Recommended Courses', key: 'recommended_courses', width: 50 },
 
     { header: 'Submitted At', key: 'created_at', width: 22 }
   ];
 
+  // Make header bold
+  worksheet.getRow(1).font = { bold: true };
+
   // ===============================
-  // Data Population
+  // Data Population (ONE ROW PER SURVEY)
   // ===============================
   rows.forEach((row) => {
-    const courses = Array.isArray(row.recommended_courses) ? row.recommended_courses : [];
+    worksheet.addRow({
+      survey_no: row.survey_no,
+      //survey_id: row.survey_id,
+      name: row.name,
+      age: row.age,
+      gender: row.gender,
+      institution: row.institution,
+      degree: row.degree,
+      year_of_study: row.year_of_study,
+      semester: row.semester,
+      percentage: row.percentage,
+      core_subjects: stringify(row.core_subjects),
+      programming_languages: stringify(row.programming_languages),
+      worked_on_projects: row.worked_on_projects,
+      technical_level: row.technical_level,
+      interests: stringify(row.interests),
+      career_goal: row.career_goal,
+      motivation: row.motivation,
+      weekly_hours: row.weekly_hours,
+      course_format: row.course_format,
+      course_length: row.course_length,
+      willing_to_pay: row.willing_to_pay,
+      learning_challenges: stringify(row.learning_challenges),
+      learning_style: stringify(row.learning_style),
+      tools_used: stringify(row.tools_used),
+      courses_completed: stringify(row.courses_completed),
+      learning_mode: row.learning_mode,
+      certifications: stringify(row.certifications),
 
-    // Case 1: No recommended courses
-    if (courses.length === 0) {
-      worksheet.addRow({
-        survey_id: row.survey_id,
-        name: row.name,
-        age: row.age,
-        gender: row.gender,
-        institution: row.institution,
-        degree: row.degree,
-        year_of_study: row.year_of_study,
-        semester: row.semester,
-        percentage: row.percentage,
-        core_subjects: stringify(row.core_subjects),
-        programming_languages: stringify(row.programming_languages),
-        worked_on_projects: row.worked_on_projects,
-        technical_level: row.technical_level,
-        interests: stringify(row.interests),
-        career_goal: row.career_goal,
-        motivation: row.motivation,
-        weekly_hours: row.weekly_hours,
-        course_format: row.course_format,
-        course_length: row.course_length,
-        willing_to_pay: row.willing_to_pay,
-        learning_challenges: stringify(row.learning_challenges),
-        learning_style: stringify(row.learning_style),
-        tools_used: stringify(row.tools_used),
-        courses_completed: stringify(row.courses_completed),
-        learning_mode: row.learning_mode,
-        certifications: stringify(row.certifications),
+      // ✅ already a STRING from SQL (STRING_AGG)
+      recommended_courses: row.recommended_courses || '',
 
-        // ✅ IST time (no need for toDate)
-        created_at: moment().format('YYYY-MM-DD HH:mm:ss')
-      });
-      return;
-    }
-
-    // Case 2: Has recommended courses
-    courses.forEach((course, index) => {
-      worksheet.addRow({
-        survey_id: index === 0 ? row.survey_id : '',
-        name: index === 0 ? row.name : '',
-        age: index === 0 ? row.age : '',
-        gender: index === 0 ? row.gender : '',
-        institution: index === 0 ? row.institution : '',
-        degree: index === 0 ? row.degree : '',
-        year_of_study: index === 0 ? row.year_of_study : '',
-        semester: index === 0 ? row.semester : '',
-        percentage: index === 0 ? row.percentage : '',
-        core_subjects: index === 0 ? stringify(row.core_subjects) : '',
-        programming_languages: index === 0 ? stringify(row.programming_languages) : '',
-        worked_on_projects: index === 0 ? row.worked_on_projects : '',
-        technical_level: index === 0 ? row.technical_level : '',
-        interests: index === 0 ? stringify(row.interests) : '',
-        career_goal: index === 0 ? row.career_goal : '',
-        motivation: index === 0 ? row.motivation : '',
-        weekly_hours: index === 0 ? row.weekly_hours : '',
-        course_format: index === 0 ? row.course_format : '',
-        course_length: index === 0 ? row.course_length : '',
-        willing_to_pay: index === 0 ? row.willing_to_pay : '',
-        learning_challenges: index === 0 ? stringify(row.learning_challenges) : '',
-        learning_style: index === 0 ? stringify(row.learning_style) : '',
-        tools_used: index === 0 ? stringify(row.tools_used) : '',
-        courses_completed: index === 0 ? stringify(row.courses_completed) : '',
-        learning_mode: index === 0 ? row.learning_mode : '',
-        certifications: index === 0 ? stringify(row.certifications) : '',
-
-        course_title: course.title,
-        course_description: course.description,
-        instructor: course.instructor,
-        duration: course.duration,
-        level: course.level,
-        rating: course.rating,
-        students: course.students,
-        price: course.price,
-
-        // ✅ Correct: course-level IST time
-        created_at: course.created_at
-          ? moment(course.created_at).format('YYYY-MM-DD HH:mm:ss')
-          : moment(row.created_at).format('YYYY-MM-DD HH:mm:ss')
-      });
+      created_at: row.created_at
+        ? moment(row.created_at).format('YYYY-MM-DD HH:mm:ss')
+        : ''
     });
   });
 
-  // ===============================
-  // Excel Date Format
-  // ===============================
+  // Wrap text for long columns
+  worksheet.getColumn('recommended_courses').alignment = {
+    wrapText: true,
+    vertical: 'top'
+  };
+
   worksheet.getColumn('created_at').numFmt =
     'yyyy-mm-dd hh:mm:ss AM/PM';
 
-  return await workbook.xlsx.writeBuffer();
+  return workbook.xlsx.writeBuffer();
 };
 
 module.exports = {

@@ -34,10 +34,11 @@ exports.downloadSurveyWithCourses = async (req, res) => {
             certifications,
             created_at
         FROM survey_responses
-        ORDER BY name, created_at DESC   -- ✅ latest survey per name
+        ORDER BY name, created_at DESC
       )
       SELECT
-        ls.id AS survey_id,
+        ROW_NUMBER() OVER (ORDER BY ls.created_at ASC) AS survey_no,  -- ✅ SERIAL NO
+        ls.id AS survey_id,                                          -- ✅ REAL ID
         ls.name,
         ls.age,
         ls.gender,
@@ -64,27 +65,17 @@ exports.downloadSurveyWithCourses = async (req, res) => {
         ls.learning_mode,
         ls.certifications,
         ls.created_at,
+
+        -- ✅ CLEAN EXCEL FRIENDLY COURSES
         COALESCE(
-          jsonb_agg(
-            DISTINCT jsonb_build_object(
-              'course_id', rc.id,
-              'title', rc.title,
-              'description', rc.description,
-              'instructor', rc.instructor,
-              'duration', rc.duration,
-              'level', rc.level,
-              'rating', rc.rating,
-              'students', rc.students,
-              'price', rc.price,
-              'tags', rc.tags,
-              'image', rc.image
-            )
-          ) FILTER (WHERE rc.id IS NOT NULL),
-          '[]'
+          STRING_AGG(DISTINCT rc.title, ', '),
+          ''
         ) AS recommended_courses
+
       FROM latest_survey ls
       LEFT JOIN recommendation_courses rc
         ON rc.survey_response_id = ls.id
+
       GROUP BY
         ls.id,
         ls.name,
@@ -113,7 +104,8 @@ exports.downloadSurveyWithCourses = async (req, res) => {
         ls.learning_mode,
         ls.certifications,
         ls.created_at
-      ORDER BY ls.created_at ASC;  -- ✅ ascending output
+
+      ORDER BY ls.created_at ASC;
     `;
 
     const { rows } = await pool.query(surveyQuery);
