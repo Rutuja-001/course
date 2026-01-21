@@ -107,6 +107,7 @@ exports.downloadSurveyWithCourses = async (req, res) => {
 
       ORDER BY ls.created_at ASC;
     `;
+    
 
     const { rows } = await pool.query(surveyQuery);
     const buffer = await exportSurveyWithCoursesExcel(rows);
