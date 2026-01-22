@@ -1,5 +1,32 @@
 const pool = require('../config/db');
 
+/* =========================
+   HELPER: CLEAN ARRAY DATA
+   ========================= */
+const cleanArray = (value) => {
+  if (!value) return '';
+
+  // If frontend sends array
+  if (Array.isArray(value)) {
+    return value.join(', ');
+  }
+
+  // If frontend sends stringified array
+  if (typeof value === 'string' && value.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.join(', ') : value;
+    } catch {
+      return value;
+    }
+  }
+
+  return value;
+};
+
+/* =========================
+   INSERT QUERY
+========================= */
 const insertQuery = `
 INSERT INTO survey_responses (
   name, age, gender, institution, degree, year_of_study, semester, percentage,
@@ -34,29 +61,34 @@ exports.createResponse = async (req, res) => {
       body.semester ?? '',
       body.percentage ?? '',
 
-      body.core_subjects ? JSON.stringify(body.core_subjects) : '',
-      body.programming_languages ? JSON.stringify(body.programming_languages) : '',
+      // ✅ FIXED (NO JSON.stringify)
+      cleanArray(body.core_subjects),
+      cleanArray(body.programming_languages),
 
-      body.worked_on_projects !== undefined ? String(body.worked_on_projects) : '',
+      body.worked_on_projects !== undefined
+        ? String(body.worked_on_projects)
+        : '',
 
       body.technical_level ?? '',
 
-      body.interests ? JSON.stringify(body.interests) : '',
+      cleanArray(body.interests),
       body.career_goal ?? '',
       body.motivation ?? '',
 
       body.weekly_hours ?? '',
       body.course_format ?? '',
       body.course_length ?? '',
-      body.willing_to_pay !== undefined ? String(body.willing_to_pay) : '',
+      body.willing_to_pay !== undefined
+        ? String(body.willing_to_pay)
+        : '',
 
-      body.learning_challenges ? JSON.stringify(body.learning_challenges) : '',
-      body.learning_style ? JSON.stringify(body.learning_style) : '',
-      body.tools_used ? JSON.stringify(body.tools_used) : '',
+      cleanArray(body.learning_challenges),
+      cleanArray(body.learning_style),
+      cleanArray(body.tools_used),
 
-      body.courses_completed ? JSON.stringify(body.courses_completed) : '',
+      cleanArray(body.courses_completed),
       body.learning_mode ?? '',
-      body.certifications ? JSON.stringify(body.certifications) : ''
+      cleanArray(body.certifications)
     ];
 
     const result = await pool.query(insertQuery, params);
