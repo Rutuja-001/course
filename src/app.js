@@ -6,6 +6,7 @@ const cors = require('cors');
 const surveyRoutes = require('./routes/surveyRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const surveyExportRoutes = require('./routes/surveyExportRoutes');
+const surveyImportRoutes = require('./routes/surveyImportRoutes');
 const swaggerSetup = require('./swagger/swagger');
 
 
@@ -20,6 +21,7 @@ app.use('/api', surveyRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 //app.use('/api/export', require('./routes/surveyExportRoutes'));
 app.use('/api/surveys/export-with-courses', surveyExportRoutes);
+app.use('/api/surveys/import-with-courses', surveyImportRoutes);
 
 // Swagger
 swaggerSetup(app);
